@@ -1,0 +1,28 @@
+--------------------------------------------------------------------------------
+
+Answer the question of whether we can generate a word-search by expressing a
+board with the following variables, instead of the traditional multidimensional
+array:
+
+  A string to represent the letters used. Spaces indicate unused (and would be
+  filled later).
+
+  A string of numbers to track adjacency. A position in the middle would have
+  eight (8) adjacent neighbors. A position in the corner would have three (3).
+
+  A one-dimensional array of scalars to map combinations of occupied positions
+  to eight bits, 0 to 255.
+
+Well, also answer if we can ask questions of a position and get back useful
+replies for filling in words.
+
+A driver program to explore--and iterate on--the problem space.
+
+Something to generate larger boards. Up-front initialization by hand is
+cumbersome and error-prone.
+
+In ANSI C (C89).
+
+Toward a printable word-search, so HTML output most likely.
+
+--------------------------------------------------------------------------------
