@@ -21,7 +21,6 @@ int main(void) {
   /* The letters used */
   char letters[LEN] =   "               HI       ";
 
-
   /* Each position is aware of its neighbors. */
   char adjacents[LEN] = "355553588885588885355553";
 
