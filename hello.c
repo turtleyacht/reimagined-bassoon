@@ -14,13 +14,12 @@ int main(void) {
   char display[TERMINAL_LEN];
   int i;
 
-  clear_display(display, TERMINAL_LEN);
-
   printf("(d)isplay, (q)uit\n");
   printf("? ");
 
   switch(choice = getchar()) {
     case 'd':
+      render_board(display, TERMINAL_LEN);
       printf("%s\n", display);
       break;
     case 'q':
