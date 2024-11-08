@@ -36,3 +36,18 @@ short int states[LEN]    = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16, 1,
    The board will be too large to do by hand.
 */
 
+int clear_display(char[], int);
+int display_board(char[], int);
+
+int clear_display(char data[], int len) {
+  int i;
+  for (i = 0; i < len; i++) {
+    data[i] = '_';
+  }
+  data[i-1] = '\0';
+  return 0;
+}
+
+int display_board(char fill[], int len) {
+  return 0;
+}
