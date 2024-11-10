@@ -71,6 +71,11 @@ int render_board(char fill[], int len) {
 
   /* State tracking */
   int st = 0;
+  char last_adjacent = '?';
+
+  /* Maybe `return' was treated as a jump like `goto', so both were normal. */
+  /* Maybe you can tell by implementation if a function is a wrapper or low-level. */
+  /* Wrapper: reads more like a paragraph than low-level twiddling */
 
   for (bi = 0; bi < LEN; bi++) {
     /* fill[di++] = ' '; */
@@ -78,28 +83,32 @@ int render_board(char fill[], int len) {
     /* fill[di++] = ' '; */
 
     printf("%d %c\n", st, adjacents[bi]);
-    if (st > 0 && adjacents[bi] == '3') {
-      fill[di] = '\n';
-    }
 
     switch(adjacents[bi]) {
       case '3':
-        if (st == 0) {
+        if (last_adjacent == '5' && st == 0) {
+          fill[di] = '\n'; /* first row, second corner */
           st++;
-        } else {
-          st--;
+        } else if (last_adjacent == '5' && st == 1) {
+          st++; /* last row, first corner */
+        } else if (last_adjacent == '5' && st == 2) {
+          fill[di] = '\n'; /* last row, second corner */
+          st = 0;
         }
         break;
       case '5':
-        if (st == 0) {
-          st++;
-        } else {
+        if (last_adjacent == '8') {
+          fill[di] = '\n';
         }
         break;
     }
-    assert(st == 0 || st == 1);
+
+    last_adjacent = adjacents[bi];
+    assert(st == 0 || st == 1 || st == 2);
     di++;
   }
+  assert(last_adjacent != '?' && last_adjacent == '3');
+  assert(st == 0);
   fill[di] = '\0';
 
   return 0;
