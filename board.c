@@ -56,7 +56,6 @@ int fill_positions(int, int, char[]);
 char ntoc(int);
 int powten(int);
 int render_board(char[], int);
-char row_number();
 
 int clear_display(char data[], int len) {
   int i;
@@ -163,7 +162,6 @@ int fill_positions(int i, int start, char fill[]) {
       numeral = i / exp;
     }
 
-    printf("i: %d, start: %d, numeral: %d\n", i, start, numeral);
     digit = ntoc(numeral);
 
     if (exp > i && tens_counter > 0) {
@@ -219,26 +217,4 @@ int powten(int n) {
     base = sum;
   }
   return sum;
-}
-
-/* Returns pos-th number of the row. For a board of LEN, if it's >=10,
-   row 10 would yield 1 for first position and 0 for second position.
-*/
-char row_number(int i, int pos) {
-  static int places = -1;
-
-  if (places < 0) {
-    int length = LEN;
-    int j = 0;
-    while (length > 0) {
-      length /= 10;
-      j++;
-    }
-
-    places = j;
-    assert(j > 0);
-  }
-
-  assert(pos <= places);
-  return 'o';
 }
