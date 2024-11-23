@@ -53,9 +53,11 @@ short int states[LEN]    = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16, 1,
 
 int clear_display(char[], int);
 int fill_positions(int, int, char[]);
+int fit_word(char[], int);
 char ntoc(int);
 int powten(int);
 int render_board(char[], int);
+int row_offset(void);
 
 int clear_display(char data[], int len) {
   int i;
@@ -63,6 +65,136 @@ int clear_display(char data[], int len) {
     data[i] = '.';
   }
   data[i-1] = '\0';
+  return 0;
+}
+
+/* A "unit ruler" based on the first row */
+/* Treated as an offset, it becomes a window like so:
+
+               0             1             2             3             4
+   A A A A A A _ x x x x x _ _ x x x x _ _ _ x x x _ _ _ _ x x _ _ _ _ _ x
+   A A A A A A             x           x x         x x x       x x x x
+   A A A A A A
+   A A A A A A           5
+               _ _ _ _ _ _
+               x x x x x
+
+   Underscores are before the given index, inclusive of index.
+   The x's always cover or highlight one before the index, in the next row.
+
+   (The last row is a special case.)
+
+   Now we can build up some semantics. Based on surroundings,
+
+     0 1 2 Direction
+     7   3   0 (nw): ?
+     6 5 4   1 (up): ?
+             2 (ne): ?
+             3 (right): index+1
+             4 (se): offset+2
+             5 (down): offset+1
+             6 (sw): offset
+             7 (left): index-1
+
+   What does the window look like as a negative offset?
+
+     x x x x x     x x x x       x x x         x x           x
+   0             1             2             3             4             5
+   _           x _         x x _       x x x _     x x x x _   x x x x x _
+
+   We can fill in the rest, with a caveat (*) for last position in a row:
+
+     0 (nw): -offset-2
+     1 (up): -offset-1
+     2 (ne): -offset (*)
+
+   At the last position in the row, ne is invalid (and technically se too).
+
+   The last index in a row should always be equal to
+
+     row-size = offset + 1
+     try-last-row-index = ([0, 1, ..., LEN-1] * row-size) + offset
+
+   Where we would loop over 0..LEN-1.
+
+   Concretely, our sample board above has last-row indices of 5, 11, 17, and 23.
+ */
+int row_offset() {
+  assert(LEN > 1); /* Avoid pathological size-1 "boards." */
+  assert(adjacents[0] == '3'); /* All boards start with a "nw corner." */
+  int i;
+  for (i = 1; i < LEN; i++) {
+    if (adjacents[i] == '3') {
+      break;
+    }
+  }
+  assert(i < LEN); /* All boards end with a "se corner." */
+  return i;
+}
+
+/* Return direction as numeric just like in states[]
+   The directions are clockwise, so
+
+     0 1 2
+     7   3          0 1 2 3 4 5 6 7
+     6 5 4
+*/
+int fit_word(char word[], int start) {
+  printf("Fit %s at position %d\n", word, start);
+  /* Build out a direction map, i.e. orient yourself */
+  /* Search is travel. */
+
+  /* Record what neighbors return */
+  int directions[] = { -1, -1, -1, -1, -1, -1, -1, -1 };
+
+  int window_size = row_offset(); /* unit ruler idea */
+
+  /* refactor the below based on unit ruler */
+
+  char num_neighbors = adjacents[start];
+
+  /* We're ants moving across a string; at least it's not braided. */
+  int bound_left = start;
+  int bound_right = start;
+
+  /* As corner, seek row start or row end. */
+  if (num_neighbors == '3' && start == 0) { /* nw corner */
+    for (; bound_right < LEN; bound_right++) {
+      if (adjacents[bound_right] == '3') {
+        break;
+      }
+    }
+  } else if (num_neighbors == '3' && start == (LEN-1)) { /* se corner */
+    for (; bound_left > 0; bound_left--) {
+      if (adjacents[bound_left] == '3') {
+        break;
+      }
+    }
+  } else if (num_neighbors == '3' && adjacents[start-1] == '5' &&
+    adjacents[start-2] == '8' &&
+    adjacents[start+1] == '5') { /* sw corner */
+    for (; bound_right < LEN; bound_right++) {
+      if (adjacents[bound_right] == '3') {
+        break;
+      }
+    }
+  } else if (num_neighbors == '3' && adjacents[start-1] == '5' &&
+    adjacents[start+1] == '5' &&
+    adjacents[start+2] == '8') { /* ne corner */
+    for (; bound_left > 0; bound_left--) {
+      if (adjacents[bound_left] == '3') {
+        break;
+      }
+    }
+  }
+
+  /* Left rank just after corner */
+  /* Right rank just before corner */
+  /* Middle days */
+  assert(bound_left <= start && bound_right >= start);
+  assert(bound_left != bound_right);
+
+  int neighbors[8] = { -1 };
   return 0;
 }
 

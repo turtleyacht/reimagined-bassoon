@@ -16,7 +16,8 @@ int main(void) {
   char choice;
   char display[TERMINAL_LEN];
   char word_to_add[LEN];
-  int i;
+  int directions;
+  int start_pos;
 
   prompt();
 
@@ -28,10 +29,11 @@ int main(void) {
         printf("word? ");
         scanf("%s", word_to_add);
         /* toupper */
-        printf("Begin %s at which position? ", word_to_add);
-        /* scanf or getchar() */
+        printf("Begin %s at which (zero-based) position? ", word_to_add);
+        scanf("%d", &start_pos);
+        directions = fit_word(word_to_add, start_pos);
         /* search valid directions only */
-        printf("direction? ");
+        printf("direction [...]? ");
         /* getchar() */
         break;
       case 'd':
