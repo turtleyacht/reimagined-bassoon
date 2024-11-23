@@ -283,7 +283,7 @@ int fill_positions(int i, int start, char fill[]) {
      73 / 10 = 7     73 / (10^1) = 7
      73 % 10 = 3     73 % (10^1) = 3
      3 / 1 = 3       3 / (10^0) = 3
-     3 % 1 = 3       3 % (10^0) = 3
+     3 % 1 = 0       3 % (10^0) = 0
    */
 
   while (tens_counter >= 0) {
