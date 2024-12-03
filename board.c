@@ -147,7 +147,37 @@ int fit_word(char word[], int start) {
   /* Record what neighbors return */
   int directions[] = { -1, -1, -1, -1, -1, -1, -1, -1 };
 
+  int i;
+
   int window_size = row_offset(); /* unit ruler idea */
+
+  /* Calculate offsets first, regardless of bounds */
+  directions[0] = start + -window_size - 2;
+  directions[1] = start + -window_size - 1;
+  directions[2] = start + -window_size;
+  directions[3] = start + 1;
+  directions[4] = start + window_size + 2;
+  directions[5] = start + window_size + 1;
+  directions[6] = start + window_size;
+  directions[7] = start - 1;
+
+  printf("0nw: %d, 1n: %d, 2ne: %d, 3e: %d, 4se: %d, 5s: %d, 6sw: %d, 7w: %d\n",
+    directions[0], directions[1], directions[2], directions[3],
+    directions[4], directions[5], directions[6], directions[7]);
+
+  /* Sanity check the bounds and store */
+  for (i = 0; i < 8; i++) {
+    /* The largest index for the current row */
+    int max_extents_index = (i * (window_size + 1)) + window_size;
+
+    /* The smallest index for the current row */
+    int min_extents_index = max_extents_index - window_size;
+
+    printf("max_extents_index (%d) = (%d * (%d + 1)) + %d\n", max_extents_index,
+      i, window_size, window_size);
+  }
+
+  /* Return something useful */
 
   /* refactor the below based on unit ruler */
 
