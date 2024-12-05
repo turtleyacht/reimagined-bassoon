@@ -53,6 +53,7 @@ short int states[LEN]    = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16, 1,
 
 int clear_display(char[], int);
 int fill_positions(int, int, char[]);
+int fill_directions(int[]);
 int fit_word(char[], int);
 char ntoc(int);
 int powten(int);
@@ -132,6 +133,11 @@ int row_offset() {
   return i;
 }
 
+int fill_directions(int directions[]) {
+  /* assert directions is length 8 */
+  return -1;
+}
+
 /* Return direction as numeric just like in states[]
    The directions are clockwise, so
 
@@ -147,7 +153,7 @@ int fit_word(char word[], int start) {
   /* Record what neighbors return */
   int directions[] = { -1, -1, -1, -1, -1, -1, -1, -1 };
 
-  int i;
+  int i, max_rows = 0;
 
   int window_size = row_offset(); /* unit ruler idea */
 
@@ -165,17 +171,41 @@ int fit_word(char word[], int start) {
     directions[0], directions[1], directions[2], directions[3],
     directions[4], directions[5], directions[6], directions[7]);
 
-  /* Sanity check the bounds and store */
+  /* Sanity check the bounds */
   for (i = 0; i < 8; i++) {
     /* The largest index for the current row */
     int max_extents_index = (i * (window_size + 1)) + window_size;
+
+    if (max_extents_index < LEN) {
+      max_rows++;
+    }
+
+    max_extents_index = max_extents_index > LEN
+      ? ((max_rows - 1) * (window_size + 1)) + window_size
+      : max_extents_index;
 
     /* The smallest index for the current row */
     int min_extents_index = max_extents_index - window_size;
 
     printf("max_extents_index (%d) = (%d * (%d + 1)) + %d\n", max_extents_index,
       i, window_size, window_size);
+
+    printf("min_extents_index: %d\n", min_extents_index);
+    printf("max_rows: %d\n", max_rows);
+
+    /* Either keep or reset the index for that direction */
+    /* TODO switch case directions & logic */
+    if (directions[i] < min_extents_index || directions[i] > max_extents_index) {
+      printf("Not keeping %d; reset.\n", directions[i]);
+      directions[i] = -1;
+    }
+
+    assert(max_extents_index < LEN);
   }
+
+  assert(max_rows > 0);
+
+  /* Check if letter already occupies that direction (states[]) */
 
   /* Return something useful */
 
