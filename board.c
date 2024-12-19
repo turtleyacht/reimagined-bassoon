@@ -59,7 +59,7 @@ int fit_word(char[], int);
 char ntoc(int);
 int powten(int);
 int render_board(char[], int);
-int reset_direction_bound(int[], int, int, int, int, int, int);
+int reset_direction_bound(int[], int, int, int, int);
 int row_offset(void);
 
 /* Determine which row a board index falls on. Board is stored as a string. */
@@ -97,7 +97,8 @@ int clear_display(char data[], int len) {
 /* Return derived result of the maximum rows */
 int fill_directions(int directions[], int start) {
   int current_row = 0;
-  int i, max_i = -1, max_i_calculated = 0;
+  int i;
+  int reset_count = 0;
 
   int window_size = row_offset(); /* unit ruler idea */
 
@@ -116,44 +117,29 @@ int fill_directions(int directions[], int start) {
     directions[4], directions[5], directions[6], directions[7]);
 
   /* To make refactoring easier: init vs assignment close to usage site */
+  /* Determine absolute_row because i is a data index, not board index */
   current_row = board_row(start);
 
   for (i = 0; i < 8; i++) {
     /* The largest index for the current row */
-    /* TODO determine absolute_row because i is a data index, not board index */
     int max_extents_index = (current_row * (window_size + 1)) + window_size;
 
-    if (max_extents_index < LEN) {
-      max_i = i;
-    } else {
-      max_i_calculated = 1;
-    }
-
-    max_extents_index = max_extents_index > LEN
-      ? (max_i * (window_size + 1)) + window_size
-      : max_extents_index;
+    assert(max_extents_index < LEN);
 
     /* The smallest index for the current row */
     int min_extents_index = max_extents_index - window_size;
 
-    printf("max_extents_index (%d) = (%d * (%d + 1)) + %d\n", max_extents_index,
-      i, window_size, window_size);
-
-    printf("min_extents_index: %d\n", min_extents_index);
-    printf("max_i: %d\n", max_i);
-
     /* Sanity check the bounds */
     /* TODO prefix with maybe_ */
-    reset_direction_bound(directions, start, i, min_extents_index, max_extents_index,
-      max_i, max_i_calculated);
+    if (reset_direction_bound(directions, start, i,
+          min_extents_index, max_extents_index)) {
+      reset_count++;
+    }
 
     assert(max_extents_index < LEN);
   }
 
-  assert(max_i > 0);
-
-
-  return max_i;
+  return reset_count;
 }
 
 /* Fill the board with the terminal position of current row.
@@ -386,21 +372,23 @@ int render_board(char fill[], int len) {
    direction is the **one** index we are interested in keeping or resetting.
    directions are the eight indices around the position, clockwise. 0 is northwest.
    {min,max}_extents_index represent the valid index range for current row.
-   max_i--which may not be completely known yet--is present frontier of row index.
-   max_i_calculated is a flag to tell us if max_rows can be depended on.
    position is the index on the board for the candidate letter.
-
-   ! max_rows may not be completely calculated yet
 
    Return 0 on success, 1 if reset.
 */
 int reset_direction_bound(int directions[], int position, int direction,
-  int min_extents_index, int max_extents_index, int max_i, int max_i_calculated) {
+  int min_extents_index, int max_extents_index) {
+
+  printf("min_extents_index=%d max_extents_index=%d\n", min_extents_index,
+    max_extents_index);
 
   assert(direction >= 0 && direction <= 7);
-  assert(directions[direction] >= 0);
-  assert(max_i_calculated == 0 || max_i_calculated == 1);
-  /* assert(position >= min_extents_index && position <= max_extents_index); */
+  assert(position >= min_extents_index && position <= max_extents_index);
+
+  /* You must accept negative indices in order to reset them...
+     Otherwise, caller must incorporate logic around "valid and invalid" directions,
+     which is what this method should do. */
+  /* assert(directions[direction] >= 0); */
 
   int change_count = 0;
   int orig_index = directions[direction];
@@ -431,18 +419,24 @@ int reset_direction_bound(int directions[], int position, int direction,
         change_count++;
       }
       break;
-    default: assert(1==2);
+    /* Avoiding early exit above to stay in line with assertions. */
+    default:
+      if (directions[direction] < 0) {
+        directions[direction] = -1;
+        change_count++;
+      } else {
+        assert(1==2);
+      }
+  }
+
+  if (directions[direction] < 0) {
+    printf("Reset direction %d at %d.\n", direction, orig_index);
   }
 
   assert(change_count <= 1);
   assert(directions[direction] == orig_index || directions[direction] == -1);
 
-  if (directions[direction] < 0) {
-    printf("Reset direction %d at %d.\n", direction, orig_index);
-    return 1;
-  }
-
-  return 0;
+  return change_count;
 }
 
 /* A "unit ruler" based on the first row */
