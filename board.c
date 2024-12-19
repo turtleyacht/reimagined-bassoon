@@ -66,6 +66,9 @@ int row_offset(void);
 int board_row(int position) {
   assert(position >= 0 && position < LEN);
 
+  /* If 0 is a valid answer, and it's used as a loop counter, start at -1 */
+  /* But you can't, because it must be calculated starting from zero. */
+  /* That's why you need the `break' later. */
   int current_row = 0;
 
   int max_extents_index = LEN;
@@ -76,11 +79,22 @@ int board_row(int position) {
   /* Offset becomes an absolute. */
   int row_len = window_size + 1;
 
-  for (; position <= max_extents_index; current_row++) {
+  /* We could return early here for the zero case (when current_row should be */
+  /* 0) but then we lose post-condition assertions. */
+
+  for (; position < max_extents_index; current_row++) {
     max_extents_index = (current_row * row_len) + window_size;
+
+    /* We never see this in the earliest for-loop examples because it doesn't */
+    /* appear so elegant. Yet we must abort for `current_row' because it      */
+    /* means something before it's incremented. Without the abort, when the   */
+    /* loop exits, `current_row' is 1 when we wanted 0, and 1 when we want 1. */
+    if (position <= max_extents_index && current_row == 0) {
+      break;
+    }
   }
 
-  assert(max_extents_index < LEN);
+  assert(max_extents_index > 0 && max_extents_index < LEN);
 
   return current_row;
 }
